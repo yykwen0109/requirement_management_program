@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.ormDAO.UserDAO">
+	
+	<select id="list" resultType="com.spring.ormVO.EmployeeVO">
+		SELECT * FROM Company_Employee_Table ORDER BY Employee_Key desc
+	</select>
+	
+	<select id = "getEmployeeKeys" resultType="java.lang.Integer">
+		select Employee_Key from Company_Employee_Table
+	</select>
+	
+	<select id="search" resultType="com.spring.ormVO.EmployeeVO">
+		SELECT * FROM Company_Employee_Table WHERE EMPLOYEE_ID = #{param1} and EMPLOYEE_PW = #{param2}
+	</select>
+	
+	<!-- 해당 Key 유저 정보 가져오기 -->
+	<select id="getOneUser" resultType="com.spring.ormVO.EmployeeVO">
+		SELECT * FROM Company_Employee_Table WHERE Employee_Key = #{param1}
+	</select>
+	
+	<!-- 새 직원 등록 -->
+	<insert id="addUser">
+		insert into Company_Employee_Table(employee_name, employee_job, employee_id, employee_pw) values(#{param1}, #{param2}, #{param3}, #{param4})
+	</insert>
+	
+	<!-- 해당 Key 유저 삭제 -->
+	<delete id="deleteUser">
+		DELETE FROM Company_Employee_Table WHERE Employee_Key = #{param1}
+	</delete>
+	
+	<!-- 해당 Key 유저 Job 변경 -->
+	<update id = "updateUserJob">
+		UPDATE Company_Employee_Table SET Employee_Job = #{param1}
+		WHERE Employee_Key = #{param2};
+	</update>
+	
+	<!-- 해당 Key 유저 Password 변경 -->
+	<update id = "updateUserPassword">
+		UPDATE Company_Employee_Table SET Employee_Pw = #{param1}
+		WHERE Employee_Key = #{param2};
+	</update>
+	
+	<!-- 해당 Key 유저 Password 변경 -->
+	<update id = "updateUser">
+		UPDATE Company_Employee_Table SET 
+		Employee_Name = #{param1},
+		Employee_Job = #{param2},
+		Employee_Id = #{param3},
+		Employee_Pw = #{param4}
+		WHERE Employee_Key = #{param5};
+	</update>
+	
+	
+	   <!-- CSR-작업자 수정 -->
+   <update id = "updateWorker">
+      UPDATE Request_Worker_Table SET 
+      Employee_Key = #{param1},
+      Start_Date = #{param2},
+      End_Date = #{param3},
+      Work_Time = #{param4}
+      WHERE Worker_Key = #{param5};
+   </update>
+	
+	<!-- Worker 데이터 추가 -->
+	<insert id="addWorker">
+		INSERT INTO Request_Worker_Table(Request_Key, Employee_Key, Start_Date, End_Date, Work_Time) values(#{param1}, #{param2}, #{param3}, #{param4}, #{param5})
+	</insert>
+		<!-- Worker 데이터 삭제 -->
+	<delete id="deleteWorker">
+		DELETE FROM Request_Worker_Table WHERE Worker_Key = #{param1}
+	</delete>
+	
+	<!-- select Workers -->
+	<select id="selectWorker" resultType="com.spring.ormVO.WorkerVO">
+		SELECT *, (SELECT count(*) FROM Request_Worker_Table WHERE Request_Key = #{param1}) as count FROM Request_Worker_Table WHERE Request_Key = #{param1}
+	</select>
+	
+	<!-- Employee  -->
+	
+</mapper>

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.ormDAO.RequestTableDAO">
+
+
+	<!-- 전체 유지보수 사항 현황 -->
+	<select id="list" resultType="com.spring.ormVO.RequestTableVO">
+		SELECT * FROM Request_Table ORDER
+		BY Request_Key desc
+	</select>
+
+	<!-- 미배정 유지보수 사항 현황 (Worker로 수정 필) -->
+	<select id="new_list"
+		resultType="com.spring.ormVO.RequestTableVO">
+		SELECT * FROM Request_Table WHERE Request_Progress = '0'
+		ORDER BY Request_Key desc
+	</select>
+
+	<!-- 진행중 유지보수 사항 현황 -->
+	<select id="proceeding_list"
+		resultType="com.spring.ormVO.RequestTableVO">
+		SELECT * FROM Request_Table WHERE Request_State != '완료'
+		ORDER BY Request_Key desc
+	</select>
+
+	<!-- 완료 유지보수 사항 현황 -->
+	<select id="clear_list"
+		resultType="com.spring.ormVO.RequestTableVO">
+		SELECT * FROM Request_Table WHERE Request_State = '완료'
+		ORDER BY Request_Key desc
+	</select>
+
+	<!-- My 유지보수 사항 현황 -->
+	<select id="my_list"
+		resultType="com.spring.ormVO.RequestTableVO">
+		SELECT * FROM Request_Table where Request_Key in (SELECT
+		Request_Key FROM Request_Worker_Table where Employee_Key = #{param1}
+		GROUP BY Request_Key) ORDER BY Request_Key desc
+	</select>
+
+	<!-- My 진행중 유지보수 사항 현황 -->
+	<select id="my_proceeding_list"
+		resultType="com.spring.ormVO.RequestTableVO">
+		SELECT * FROM Request_Table where Request_State = '진행' AND
+		Request_Key in (SELECT Request_Key FROM Request_Worker_Table where
+		Employee_Key = #{param1} GROUP BY Request_Key) ORDER BY Request_Key
+		desc
+	</select>
+
+	<!-- My 완료 유지보수 사항 현황 -->
+	<select id="my_clear_list"
+		resultType="com.spring.ormVO.RequestTableVO">
+		SELECT * FROM Request_Table where Request_State = '완료' AND
+		Request_Key in (SELECT Request_Key FROM Request_Worker_Table where
+		Employee_Key = #{param1} GROUP BY Request_Key) ORDER BY Request_Key
+		desc
+	</select>
+
+	<!-- 해당 Key 요구사항 가져오기 -->
+	<select id="getOneRequest"
+		resultType="com.spring.ormVO.RequestTableVO">
+		SELECT * FROM Request_Table WHERE Request_Key = #{param1}
+	</select>
+
+	<!-- 프로젝트별 요구사항의 개수 가져오기 -->
+	<select id="count_request_by_project"
+		resultType="com.spring.ormVO.CountVO">
+		SELECT project_key, count(project_key) AS count FROM
+		Request_Table GROUP BY project_key
+	</select>
+
+	<!-- 직원별 요구사항의 개수 가져오기 -->
+	<select id="count_request_by_employee"
+		resultType="com.spring.ormVO.CountVO">
+		SELECT employee_key, count(request_key) AS count FROM
+		Request_Worker_Table GROUP BY employee_key
+	</select>
+
+	<!-- 당일별 요구사항 등록 개수 가져오기 -->
+	<select id="count_request_by_date"
+		resultType="com.spring.ormVO.CountVO">
+		SELECT count(request_key) AS count,
+		DATE_FORMAT(request_date_upload, "%Y-%m-%d") AS request_date_upload
+		FROM Request_Table GROUP BY DATE_FORMAT(request_date_upload,
+		"%Y-%m-%d")
+	</select>
+
+	<!-- 당일별 프로젝트 등록(start) 개수 가져오기 -->
+	<select id="count_project_by_date"
+		resultType="com.spring.ormVO.CountVO">
+		SELECT count(project_key) AS count,
+		DATE_FORMAT(project_date_start, "%Y-%m-%d") AS project_date_start FROM
+		Project_Table GROUP BY DATE_FORMAT(project_date_start, "%Y-%m-%d");
+	</select>
+
+	<!-- 해당 직원의 진행 CSR 개수 가져오기 -->
+	<select id="count_my_proeceeding_request_number"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM Request_Table where Request_State =
+		'진행' AND
+		Request_Key in (SELECT Request_Key FROM Request_Worker_Table
+		where
+		Employee_Key = #{param1} GROUP BY Request_Key);
+	</select>
+
+	<!-- 해당 직원의 전체 요구사항 개수 가져오기 -->
+	<select id="count_my_request_number"
+		resultType="java.lang.Integer">
+		SELECT count(*) as cnt from Request_Table where Request_Key
+		in (SELECT Request_Key FROM Request_Worker_Table where Employee_Key =
+		#{param1} GROUP BY Request_Key)
+	</select>
+
+	<!-- 해당 직원이 완료한 요구사항 개수 가져오기 -->
+	<select id="count_my_finished_request_number"
+		resultType="java.lang.Integer">
+		SELECT count(*) as cnt from Request_Table
+		where Request_Key
+		in
+		(SELECT Request_Key FROM Request_Worker_Table where Employee_Key =
+		#{param1}
+		GROUP BY Request_Key)
+		AND Request_State = '완료'
+	</select>
+
+	<!-- 마지막으로 추가한 CSR 19-07-04 DUSDJ -->
+	<select id="getLast"
+		resultType="com.spring.ormVO.RequestTableVO">
+		SELECT * FROM Request_Table ORDER BY Request_Key DESC LIMIT
+		1
+	</select>
+
+	<!-- 새 유지보수 요구사항 등록 -->
+	<insert id="addRequest">
+		INSERT INTO Request_Table(Project_Key,
+		Request_Title,
+		Request_Content,
+		Request_Requester_Name, Request_Work_Classification,
+		Request_State, Request_Progress,
+		Request_Date_End, Request_Work_Time,
+		Request_Content_Detail) VALUES (#{param1},
+		#{param2}, #{param3},
+		#{param4}, #{param5},
+		#{param6}, #{param7},
+		#{param8}, #{param9},
+		#{param10})
+	</insert>
+
+	<!-- 유지보수 요구사항 담당자 배정 -->
+	<update id="assignMember">
+		UPDATE Project_Request_Table SET Request_Employee_Dev
+		= #{param1} WHERE Request_Key = #{param2};
+	</update>
+
+	<!-- 유지보수 요구사항 담당자 배정 -->
+	<update id="RequirementFinished">
+		UPDATE Project_Request_Table SET Request_State = '완료'
+		WHERE Request_Key = #{param1};
+	</update>
+
+	<!-- 유지보수 요구사항 담당자 배정 -->
+	<update id="updateRequest">
+		UPDATE Request_Table SET Project_Key = #{param1},
+		Request_Title = #{param2},
+		Request_Content = #{param3},
+		Request_Requester_Name = #{param4},
+		Request_Work_Classification =
+		#{param5},
+		Request_State = #{param6},
+		Request_Progress = #{param7},
+		Request_Date_End = #{param8},
+		Request_Work_Time = #{param9},
+		Request_Content_Detail = #{param10}
+		WHERE Request_Key = #{param11}
+	</update>
+
+
+	<!-- 유지보수 요구사항 행 삭제 -->
+	<delete id="deleteRequest">
+		DELETE FROM Request_Table WHERE Request_Key =
+		#{param1};
+	</delete>
+
+	<!-- 전체 마감 7일전 요구사항 -->
+	<select id="dateDiffBelow7"
+		resultType="com.spring.ormVO.RequestTableVO">
+		SELECT * from Request_Table where DATEDIFF(Request_Date_End, now()) <![CDATA[ <= ]]>
+		7 and DATEDIFF(Request_Date_End, now()) <![CDATA[ >= ]]>
+		0
+	</select>
+
+	<!-- 사원별 마감 7일전 요구사항 -->
+	<select id="dateDiffBelow7ByEmployee"
+		resultType="com.spring.ormVO.RequestTableVO">
+		SELECT * from Request_Table where DATEDIFF(Request_Date_End, now()) <![CDATA[ <= ]]>
+		7 and DATEDIFF(Request_Date_End, now()) <![CDATA[ >= ]]>
+		0
+		And Request_Key in
+		(SELECT Request_Key FROM Request_Worker_Table where
+		Employee_Key = #{param1}
+		GROUP BY Request_Key)
+	</select>
+
+	<!-- 해당 유지보수에 대한 작업중인 유저 리스트 -->
+	<select id="getWorkerList"
+		resultType="com.spring.ormVO.EmployeeVO">
+		SELECT * FROM Company_Employee_Table WHERE Employee_Key IN
+		(SELECT Employee_Key FROM Request_Worker_Table WHERE Request_Key =
+		#{param1})
+	</select>
+
+	<select id="getUnassignedRequestKeys"
+		resultType="java.lang.Integer">
+		select Request_Key from Request_Table where Request_Key not
+		in (select Request_Key from Request_Worker_Table)
+	</select>
+	
+	<!-- 해당 프로젝트 CSR 리스트 -->
+	<select id = "getRequestByProjectKey"
+		resultType="com.spring.ormVO.RequestTableVO">
+		select * from Request_Table where Project_Key = #{param1}
+	</select>
+</mapper>

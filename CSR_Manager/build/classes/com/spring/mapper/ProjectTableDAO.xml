@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.ormDAO.ProjectTableDAO">
+	<select id="list" resultType="com.spring.ormVO.ProjectTableVO">
+		SELECT * FROM Project_Table ORDER BY Project_Key desc
+	</select>
+
+
+
+	<!-- 프로젝트 신청현황 - 미확정된 (신규) 프로젝트만 select -->
+	<select id="list_new"
+		resultType="com.spring.ormVO.ProjectTableVO">
+		SELECT * FROM Project_Table WHERE Project_State = '대기' ORDER BY Project_Key desc
+	</select>
+
+	<!-- 프로젝트 신청현황 - 진행중인 프로젝트만 select -->
+	<select id="list_proceed"
+		resultType="com.spring.ormVO.ProjectTableVO">
+		SELECT * FROM Project_Table WHERE Project_State = '진행중'  ORDER BY Project_Key desc
+	</select>
+	
+	<!-- 프로젝트 신청현황 - 완료된 프로젝트만 select -->
+	<select id="list_finished"
+		resultType="com.spring.ormVO.ProjectTableVO">
+		SELECT * FROM Project_Table WHERE Project_State = '완료'  ORDER BY Project_Key desc
+	</select>
+
+	<!-- 요구사항 등록시 프로젝트(state != 대기) 키, 네임 select -->
+	<select id="list_for_request"
+		resultType="com.spring.ormVO.ProjectTableVO">
+		SELECT Project_Key, Project_Name FROM Project_Table WHERE
+		Project_State != '대기'  ORDER BY Project_Key desc
+	</select>
+
+	<!-- 해당 Key 프로젝트 가져오기 -->
+	<select id="getOneProject"
+		resultType="com.spring.ormVO.ProjectTableVO">
+		SELECT * FROM Project_Table WHERE Project_Key = #{param1}
+	</select>
+
+	<!-- 프로젝트 탐색 기능 -->
+	<select id="find_Project"
+		resultType="com.spring.ormVO.ProjectTableVO">
+		SELECT * FROM Project_Table WHERE Project_State = #{param1}
+		AND
+		Project_Scope = #{param2} AND Project_Type = #{param3}
+	</select>
+
+
+	<insert id="addProject">
+		insert into Project_Table(project_state,
+		project_company, project_name, project_money, 
+		project_date_start, project_date_end)
+		values(#{param1}, #{param2}, #{param3},
+		#{param4}, #{param5}, #{param6})
+	</insert>
+	
+	<!-- 가장 마지막에 추가된 프로젝트 : 프로젝트분류 - 분류없음 생성용. -->
+	<select id="getLastProject"
+		resultType="com.spring.ormVO.ProjectTableVO">
+		SELECT Project_Key FROM Project_Table ORDER BY Project_Key
+		DESC LIMIT 1;
+	</select>
+
+	<delete id="deleteProject">
+		delete from Project_Table where Project_Key = #{param1}
+	</delete>
+
+	<update id="updateProject">
+		update Project_Table SET Project_State = #{param1},
+		Project_Company = #{param2},
+		Project_Name = #{param3},
+		Project_Money = #{param4},
+		Project_Date_Start = #{param5},
+		Project_Date_End = #{param6}
+		WHERE Project_Key = #{param7}
+	</update>
+	
+	<select id = "getProjectKeys" resultType="java.lang.Integer">
+		select Project_Key from Project_Table
+	</select>
+</mapper>
