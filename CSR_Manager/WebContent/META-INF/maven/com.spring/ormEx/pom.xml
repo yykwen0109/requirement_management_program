@@ -148,7 +148,7 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator</artifactId>
-			<version>4.0.0.GA</version>
+			<version>5.3.5.Final</version>
 		</dependency>
 
 		<!-- 하이버네이트 annotation -->
